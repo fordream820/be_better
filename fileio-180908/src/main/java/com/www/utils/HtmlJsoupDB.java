@@ -18,11 +18,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class HtmlJsoup {
+public class HtmlJsoupDB {
 
     public static String encoding = "utf-8";
     public static String baseUrl = "http://w3.afulyu.pw/pw/";
-    public static String baseFilePath = "/Users/wudawei/Documents/www/fileio";
 
     /**
      * 第一步：获取页面的源代码；
