@@ -8,6 +8,7 @@ public class Image {
     private String data;
     private Long seq;
     private Long index;
+    private String url;
 
     public Long getId() {
         return id;
@@ -55,5 +56,13 @@ public class Image {
 
     public void setIndex(Long index) {
         this.index = index;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

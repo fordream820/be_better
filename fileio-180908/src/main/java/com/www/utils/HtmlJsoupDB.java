@@ -1,6 +1,10 @@
 package com.www.utils;
 
+import com.www.dao.ImageDao;
+import com.www.dao.PageDao;
 import com.www.model.HtmlModel;
+import com.www.model.Image;
+import com.www.model.Page;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,11 +27,6 @@ public class HtmlJsoupDB {
     public static String encoding = "utf-8";
     public static String baseUrl = "http://w3.afulyu.pw/pw/";
 
-    /**
-     * 第一步：获取页面的源代码；
-     * 第二步：解析源代码，含有图片的标签，再找到图片标签里面的src；
-     * 第三步：利用Java里面的net包，网络编程
-     * */
 
 
     /**
@@ -47,6 +46,7 @@ public class HtmlJsoupDB {
             urlObj = new URL(url);
             // 打开网络连接
             uc     = urlObj.openConnection();
+            uc.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
             // 创建输入流
             in     = new InputStreamReader(uc.getInputStream(),encoding);
             // 创建一个缓冲写入流
@@ -147,13 +147,14 @@ public class HtmlJsoupDB {
     public static void getImg(HtmlModel htmlModel){
         String url = htmlModel.getUrl();
         String title = htmlModel.getTitle();
-        String title1 = "other";
-        String title2 = title;
-        if(title.indexOf(']')  >= 0 ){
-            title1 = title.substring(0,title.indexOf(']') + 1);
-            title2 = title.substring(title.indexOf(']') + 1);
-        }
-        String filePath = baseFilePath + File.separator +  title1+ File.separator +  title2;
+
+        Page page = new Page();
+        page.setName(title);
+        page.setSize(0L);
+        page.setStep(0L);
+        page.setUrl(url);
+        long id = new PageDao().save(page);
+
         String htmlResource = getHtmlResourceByUrl(url, encoding);
 
         // 解析网页源代码
@@ -167,48 +168,25 @@ public class HtmlJsoupDB {
             if (!"".equals(imgSrc) && (imgSrc.startsWith("http://") || imgSrc.startsWith("https://"))) {
                 // 判断imgSrc是否为空且是否以"http://"开头
                 //System.out.println("正在下载的图片的地址：" + imgSrc);
-                downImages(filePath, imgSrc);
+                //downImages(filePath, imgSrc);
+                Image image = new Image();
+                image.setPageId(id);
+                image.setUrl(imgSrc);
+                new ImageDao().save(image);
             }
         }
 
-        System.out.println("-------下载" + htmlModel.getTitle() + "完毕！-------");
+        //System.out.println("-------下载" + htmlModel.getTitle() + "完毕！-------");
     }
 
     //执行测试程序代码
     public static void main(String[] args) {
 
-        //http://w3.afulyu.pw/pw/thread.php?fid=14&page=2
-        int page = 2;
-        while(page < 500){
-            String url = "http://w3.afulyu.pw/pw/thread.php?fid=14&page=" + page;
-            final List<HtmlModel> list = getHtml(url);
-            System.out.println(list);
-
-            ExecutorService fixedThreadPool = null;
-            try{
-                fixedThreadPool = Executors.newFixedThreadPool(20);
-                for(final HtmlModel htmlModel : list){
-                    fixedThreadPool.execute(new Runnable() {
-                        public void run() {
-                            getImg(htmlModel);
-                        }
-                    });
-                }
-
-            }catch (Exception e){
-                e.printStackTrace();
-            }finally {
-                if(fixedThreadPool != null){
-                    try{
-                        fixedThreadPool.shutdown();
-                        fixedThreadPool.awaitTermination(1,TimeUnit.MINUTES);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-
-            }
-            page ++;
+        String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14.html";
+//            String url = "http://k.com/pw/thread-htm-fid-14-page-3.html";
+        final List<HtmlModel> list = getHtml(url);
+        for(final HtmlModel htmlModel : list){
+            getImg(htmlModel);
         }
     }
 }

@@ -8,6 +8,7 @@ public class Page {
     private String name;
     private Long size;
     private Long step;
+    private String url;
     private Date createdAt;
     private Date updatedAt;
 
@@ -57,5 +58,13 @@ public class Page {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
