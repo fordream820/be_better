@@ -22,7 +22,7 @@ public class HtmlJsoup {
 
     public static String encoding = "utf-8";
     public static String baseUrl = "http://w3.afulyu.pw/pw/";
-    public static String baseFilePath = "/Users/wudawei/Documents/www/fileio";
+    public static String baseFilePath = "D:/www/fileio";
 
     /**
      * 第一步：获取页面的源代码；
@@ -39,7 +39,7 @@ public class HtmlJsoup {
     public static String getHtmlResourceByUrl(String url,String encoding){
         StringBuffer buffer   = new StringBuffer();
         URL urlObj            = null;
-        URLConnection uc      = null;
+        HttpURLConnection connection      = null;
         InputStreamReader in  = null;
         BufferedReader reader = null;
 
@@ -47,9 +47,10 @@ public class HtmlJsoup {
             // 建立网络连接
             urlObj = new URL(url);
             // 打开网络连接
-            uc     = urlObj.openConnection();
+            connection = (HttpURLConnection) urlObj.openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
             // 创建输入流
-            in     = new InputStreamReader(uc.getInputStream(),encoding);
+            in     = new InputStreamReader(connection.getInputStream(),encoding);
             // 创建一个缓冲写入流
             reader = new BufferedReader(in);
 
@@ -81,6 +82,10 @@ public class HtmlJsoup {
     public static void downImages(String filePath,String imageUrl){
         // 截取图片的名称
         String fileName = imageUrl.substring(imageUrl.lastIndexOf("/"));
+        if(fileName.indexOf(".") >= 0){
+            fileName = fileName.substring(0,fileName.indexOf("."));
+        }
+
         File file = new File(filePath+fileName);
         if(file.exists()){
             return;
@@ -94,15 +99,6 @@ public class HtmlJsoup {
         try {
             URL url = new URL(imageUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            /**
-             * 当你使用java程序检索其他网站上的内容时,如果其服务器设置了禁止抓取,或者其访问需要权限,
-             * 如果此时你去检索网页那么就会有异常该异常出现.
-             * 如果是服务器需要访问权限,比如说你要登录才能访问的网页,那么你抓取不了的.
-             * 如果是服务器端禁止抓取,那么这个你可以通过设置User-Agent来欺骗服务器
-             * connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
-             * User Agent中文名为用户代理，简称 UA，它是一个特殊字符串头，使得服务器能够识别客户使用的操作系统及版本、CPU 类型、浏览器及版本、浏览器渲染引擎、浏览器语言、浏览器插件等。　　
-             * 一些网站常常通过判断 UA 来给不同的操作系统、不同的浏览器发送不同的页面，因此可能造成某些页面无法在某个浏览器中正常显示，但通过伪装 UA 可以绕过检测。
-             */
             connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
             InputStream is = connection.getInputStream();
             // 创建文件
@@ -123,9 +119,17 @@ public class HtmlJsoup {
 
     public static List<HtmlModel> getHtml(String url){
         List<HtmlModel> list = new ArrayList<HtmlModel>();
-        String htmlResource = getHtmlResourceByUrl(url, encoding);
-        // 解析网页源代码
-        Document document = Jsoup.parse(htmlResource);
+//        String htmlResource = getHtmlResourceByUrl(url, encoding);
+//        // 解析网页源代码
+//
+//        Document document = Jsoup.parse(htmlResource);
+
+        Document document = null;
+        try {
+            document = Jsoup.parse(new URL(url),100000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // 获取所有图片的地址
         Elements elements = document.getElementsByTag("a");
 
@@ -154,11 +158,21 @@ public class HtmlJsoup {
             title1 = title.substring(0,title.indexOf(']') + 1);
             title2 = title.substring(title.indexOf(']') + 1);
         }
+
+        title2 = new BASE64Encoder().encode(title2.getBytes());
         String filePath = baseFilePath + File.separator +  title1+ File.separator +  title2;
-        String htmlResource = getHtmlResourceByUrl(url, encoding);
+        new File(filePath).mkdirs();
+//        String htmlResource = getHtmlResourceByUrl(url, encoding);
 
         // 解析网页源代码
-        Document document = Jsoup.parse(htmlResource);
+        //Document document = Jsoup.parse(htmlResource);
+        Document document = null;
+        try {
+            document = Jsoup.parse(new URL(url),100000);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
         // 获取所有图片的地址
         Elements elements = document.getElementsByTag("img");
 
@@ -172,43 +186,74 @@ public class HtmlJsoup {
             }
         }
 
-        System.out.println("-------下载" + htmlModel.getTitle() + "完毕！-------");
+        File file = new File(filePath + File.separator + "OK");
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            out.write(1);
+        } catch (Exception e) {
+
+        }finally {
+            if(out != null){
+                try {
+                    out.flush();
+                    out.close();
+                } catch (IOException e) {
+
+                }
+            }
+        }
+
+        //System.out.println("-------下载" + htmlModel.getTitle() + "完毕！-------");
     }
 
     //执行测试程序代码
     public static void main(String[] args) {
 
-        //http://w3.afulyu.pw/pw/thread.php?fid=14&page=2
-        int page = 2;
-        while(page < 500){
-            String url = "http://w3.afulyu.pw/pw/thread.php?fid=14&page=" + page;
-            final List<HtmlModel> list = getHtml(url);
-            System.out.println(list);
-
-            ExecutorService fixedThreadPool = null;
-            try{
-                fixedThreadPool = Executors.newFixedThreadPool(20);
-                for(final HtmlModel htmlModel : list){
-                    fixedThreadPool.execute(new Runnable() {
-                        public void run() {
-                            getImg(htmlModel);
-                        }
-                    });
-                }
-
-            }catch (Exception e){
-                e.printStackTrace();
-            }finally {
-                if(fixedThreadPool != null){
-                    try{
-                        fixedThreadPool.shutdown();
-                        fixedThreadPool.awaitTermination(1,TimeUnit.MINUTES);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-
+        String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14.html";
+        int page = 1;
+        while(page < 2){
+            if(page != 1){
+                url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-" + page + ".html";
             }
+            final List<HtmlModel> list = getHtml(url);
+
+            System.out.println(list.size());
+            System.out.println(list.get(0).getUrl());
+            //http://93.cao1024lui99.com/pw/htm_data/14/1811/1378454.html
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for(final HtmlModel htmlModel : list){
+                getImg(htmlModel);
+            }
+
+//            ExecutorService fixedThreadPool = null;
+//            try{
+//                fixedThreadPool = Executors.newFixedThreadPool(20);
+//                for(final HtmlModel htmlModel : list){
+//                    fixedThreadPool.execute(new Runnable() {
+//                        public void run() {
+//                            getImg(htmlModel);
+//                        }
+//                    });
+//                }
+//
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }finally {
+//                if(fixedThreadPool != null){
+//                    try{
+//                        fixedThreadPool.shutdown();
+//                        fixedThreadPool.awaitTermination(1,TimeUnit.MINUTES);
+//                    }catch (Exception e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
             page ++;
         }
     }

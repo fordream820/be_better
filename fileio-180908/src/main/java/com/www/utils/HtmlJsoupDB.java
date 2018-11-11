@@ -185,6 +185,11 @@ public class HtmlJsoupDB {
         String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14.html";
 //            String url = "http://k.com/pw/thread-htm-fid-14-page-3.html";
         final List<HtmlModel> list = getHtml(url);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for(final HtmlModel htmlModel : list){
             getImg(htmlModel);
         }
