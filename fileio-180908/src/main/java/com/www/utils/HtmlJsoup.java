@@ -1,6 +1,7 @@
 package com.www.utils;
 
 import com.www.model.HtmlModel;
+import net.iharder.Base64;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,7 +23,8 @@ public class HtmlJsoup {
 
     public static String encoding = "utf-8";
     public static String baseUrl = "http://w3.afulyu.pw/pw/";
-    public static String baseFilePath = "D:/www/fileio";
+    public static String baseFilePath = "F:/www/fileio";
+    public static int timeout = 100000;
 
     /**
      * 第一步：获取页面的源代码；
@@ -126,9 +128,10 @@ public class HtmlJsoup {
 
         Document document = null;
         try {
-            document = Jsoup.parse(new URL(url),100000);
-        } catch (IOException e) {
-            e.printStackTrace();
+            document = Jsoup.parse(new URL(url),timeout);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ArrayList<HtmlModel>();
         }
         // 获取所有图片的地址
         Elements elements = document.getElementsByTag("a");
@@ -159,7 +162,8 @@ public class HtmlJsoup {
             title2 = title.substring(title.indexOf(']') + 1);
         }
 
-        title2 = new BASE64Encoder().encode(title2.getBytes());
+        title2 = Base64.encodeBytes(title2.getBytes());
+
         String filePath = baseFilePath + File.separator +  title1+ File.separator +  title2;
         new File(filePath).mkdirs();
 //        String htmlResource = getHtmlResourceByUrl(url, encoding);
@@ -168,9 +172,9 @@ public class HtmlJsoup {
         //Document document = Jsoup.parse(htmlResource);
         Document document = null;
         try {
-            document = Jsoup.parse(new URL(url),100000);
+            document = Jsoup.parse(new URL(url),timeout);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
             return;
         }
         // 获取所有图片的地址
@@ -182,6 +186,8 @@ public class HtmlJsoup {
             if (!"".equals(imgSrc) && (imgSrc.startsWith("http://") || imgSrc.startsWith("https://"))) {
                 // 判断imgSrc是否为空且是否以"http://"开头
                 //System.out.println("正在下载的图片的地址：" + imgSrc);
+                System.out.println(filePath);
+                System.out.println(imgSrc);
                 downImages(filePath, imgSrc);
             }
         }
@@ -209,23 +215,35 @@ public class HtmlJsoup {
 
     //执行测试程序代码
     public static void main(String[] args) {
+        start1();
 
-        String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14.html";
+    }
+
+    public static void start2(){
+        HtmlModel model = new HtmlModel();
+//        model.setUrl("http://w3.afulyu.pw/pw/htm_data/14/1811/1379638.html");
+        model.setUrl("http://93.cao1024lui99.com/pw/htm_data/14/1811/1379644.html");
+        model.setTitle("[11.11] XXX[50P]");
+        getImg(model);
+    }
+    public static void start1(){
+        //http://93.cao1024lui99.com/pw/htm_data/14/1811/1379644.html
+        //http://p7.urlpic.club/pic1893/upload/image/20181111/11110850619.jpg
+        //String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-2.html";
         int page = 1;
         while(page < 2){
-            if(page != 1){
-                url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-" + page + ".html";
-            }
+            String url = url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-" + page + ".html";
             final List<HtmlModel> list = getHtml(url);
 
             System.out.println(list.size());
-            System.out.println(list.get(0).getUrl());
+//            System.out.println(list.get(0).getUrl());
+//            System.out.println(list.get(0).getTitle());
             //http://93.cao1024lui99.com/pw/htm_data/14/1811/1378454.html
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             for(final HtmlModel htmlModel : list){
                 getImg(htmlModel);
