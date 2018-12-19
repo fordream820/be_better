@@ -22,8 +22,9 @@ import java.util.concurrent.TimeUnit;
 public class HtmlJsoup {
 
     public static String encoding = "utf-8";
-    public static String baseUrl = "http://w3.afulyu.pw/pw/";
-    public static String baseFilePath = "F:/www/fileio";
+    public static String baseUrl = "http://93.cao1024lui99.com/pw/";
+//    public static String baseFilePath = "F:/www/fileio";
+    public static String baseFilePath = "/Users/wudawei/Documents/www/fileio";
     public static int timeout = 100000;
 
     /**
@@ -130,7 +131,7 @@ public class HtmlJsoup {
         try {
             document = Jsoup.parse(new URL(url),timeout);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             return new ArrayList<HtmlModel>();
         }
         // 获取所有图片的地址
@@ -162,7 +163,7 @@ public class HtmlJsoup {
             title2 = title.substring(title.indexOf(']') + 1);
         }
 
-        title2 = Base64.encodeBytes(title2.getBytes());
+        //title2 = Base64.encodeBytes(title2.getBytes());
 
         String filePath = baseFilePath + File.separator +  title1+ File.separator +  title2;
         new File(filePath).mkdirs();
@@ -174,7 +175,7 @@ public class HtmlJsoup {
         try {
             document = Jsoup.parse(new URL(url),timeout);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             return;
         }
         // 获取所有图片的地址
@@ -232,7 +233,7 @@ public class HtmlJsoup {
         //String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-2.html";
         int page = 1;
         while(page < 2){
-            String url = url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-" + page + ".html";
+            String url = "http://93.cao1024lui99.com/pw/thread-htm-fid-14-page-" + page + ".html";
             final List<HtmlModel> list = getHtml(url);
 
             System.out.println(list.size());
